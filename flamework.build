@@ -1,0 +1,10 @@
+{
+	"version": 1,
+	"flameworkVersion": "1.0.0-beta.24",
+	"identifiers": {
+		"leaderboard-system:out/server/services/leaderboard@LeaderboardService": "server/services/leaderboard@LeaderboardService",
+		"leaderboard-system:out/server/systems/datastore/init@DataStoreManager": "server/systems/datastore/init@DataStoreManager",
+		"leaderboard-system:out/server/systems/leaderboard/init@leaderboard": "server/systems/leaderboard/init@leaderboard"
+	},
+	"metadata": {}
+}
