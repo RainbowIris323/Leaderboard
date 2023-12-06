@@ -1,5 +1,6 @@
 import { SerializableContainer } from "./types";
 
+/**The data loaded for leaderstats. */
 export const PlayerDataDefaults: SerializableContainer = {
 	Name: "PlayerData",
 	Priority: 0,

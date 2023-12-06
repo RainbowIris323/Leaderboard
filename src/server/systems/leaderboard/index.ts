@@ -1,10 +1,15 @@
 import { t } from "@rbxts/t";
 import { DataStoreManager } from "../datastore";
 
+/**
+ * The main entry point for leaderboard stats.
+ * For availible stats see "src/server/systems/datastore/templates.ts"
+ */
 export class leaderboard {
-	private static SECONDS_PER_PLAYTIME = 5;
+	private static SECONDS_PER_PLAYTIME = 5; //The number of seconds per playtime point.
 
-	static createNewLeaderstats(player: Player) {
+	/**Adds the leaderstats folder to a player and loads the PlayerData template. */
+	public static createNewLeaderstats(player: Player) {
 		const leaderstats = new Instance("Folder");
 		leaderstats.Name = "leaderstats";
 		leaderstats.Parent = player;
@@ -27,7 +32,7 @@ export class leaderboard {
 			priority.Parent = intValue;
 		});
 
-		task.delay(this.SECONDS_PER_PLAYTIME, () => this.updatePlaytime(player));
+		task.delay(this.SECONDS_PER_PLAYTIME, () => this.updatePlaytime(player)); //Starts the playtime loop.
 	}
 
 	private static updatePlaytime(player: Player) {
@@ -35,24 +40,54 @@ export class leaderboard {
 		task.delay(this.SECONDS_PER_PLAYTIME, () => this.updatePlaytime(player));
 	}
 
-	static setStat(player: Player, statName: string, value: number) {
+	/**
+	 * Sets a players stat to a given value.
+	 * @param statName The name of the stat shown in the PlayerData template.
+	 */
+	public static setStat(player: Player, statName: string, value: number): number | undefined {
 		const stat = this.getStat(player, statName);
 		if (!stat) return;
 		stat.Value = value;
 		const statInstance = player.FindFirstChild("leaderstats")?.FindFirstChild(statName);
 		if (statInstance === undefined || !statInstance.IsA("IntValue")) return;
-		statInstance.Value = value;
+		if (value < 0) statInstance.Value = 0;
+		else statInstance.Value = value;
+		return value;
 	}
 
-	static getStat(player: Player, statName: string) {
+	/**
+	 * Returns the value of a player stat if any exists.
+	 * @param statName The name of the stat shown in the PlayerData template.
+	 */
+	public static getStat(player: Player, statName: string) {
 		const data = DataStoreManager.getData(player, "PlayerData");
 		if (!data) return;
 		return data.Value.find((stat) => stat.Name === statName);
 	}
 
-	static updateStat(player: Player, statName: string, change: number) {
+	/**
+	 * Adds the change to a stat if the stat goes negitive it will be zero
+	 * @param statName The name of the stat shown in the PlayerData template.
+	 */
+	public static updateStat(player: Player, statName: string, change: number): number | undefined {
 		const stat = this.getStat(player, statName);
 		if (!stat || !t.number(stat.Value)) return;
-		this.setStat(player, statName, stat.Value + change);
+		if (stat.Value + change < 0) this.setStat(player, statName, 0);
+		else this.setStat(player, statName, stat.Value + change);
+		return stat.Value;
+	}
+
+	/**
+	 * Adds the change to a stat if the stat goes negitive the process will fail.
+	 * @param statName The name of the stat shown in the PlayerData template.
+	 * @returns [success, (if fail: error | quantity short) (if success: new value)]
+	 */
+	public static tryUpdateStat(player: Player, statName: string, change: number): [boolean, string | number] {
+		const stat = this.getStat(player, statName);
+		if (!stat || !t.number(stat.Value))
+			return [false, `Stat: ${statName} does not exist on player: ${player.Name}`];
+		if (stat.Value + change < 0) return [false, math.abs(stat.Value + change)];
+		else this.setStat(player, statName, stat.Value + change);
+		return [true, stat.Value];
 	}
 }
